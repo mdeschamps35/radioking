@@ -28,11 +28,11 @@ Pas d'exception handler global (on a des RestExceptionHandler en spring je n'ai 
 - Pas de metrics (otel ou autre), ainsi que d'actuator (health check / liveness / readiness)
 
 
-**Résilience messaging**
+**Messaging**
 - Gestion simpliste des erreurs de publication
 - Absence de Dead Letter Queue pour les messages en échec
 - Pas de retry avec backoff exponentiel
-
+- Un seul consumer pas très scalable (en java spring l'autoconf pour avoir plusieurs consumer est quasi automatique)
 
 **Tests**
 - Coverage largement insuffisant

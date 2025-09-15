@@ -34,26 +34,8 @@ func NewRabbitMQPublisher(cfg config.RabbitMQConfig) (*RabbitMQPublisher, error)
 		config:  cfg,
 	}
 
-	// Créer l'exchange s'il n'existe pas
-	if err := publisher.setupExchange(); err != nil {
-		publisher.Close()
-		return nil, fmt.Errorf("failed to setup exchange: %w", err)
-	}
-
 	log.Printf("RabbitMQ Publisher connected to %s", cfg.URL)
 	return publisher, nil
-}
-
-func (p *RabbitMQPublisher) setupExchange() error {
-	return p.channel.ExchangeDeclare(
-		p.config.Exchange, // name
-		"topic",           // type
-		true,              // durable
-		false,             // auto-deleted
-		false,             // internal
-		false,             // no-wait
-		nil,               // arguments
-	)
 }
 
 func (p *RabbitMQPublisher) PublishTrackPlayedEvent(event models.TrackPlayedEvent) error {
@@ -63,14 +45,14 @@ func (p *RabbitMQPublisher) PublishTrackPlayedEvent(event models.TrackPlayedEven
 	}
 
 	err = p.channel.Publish(
-		p.config.Exchange,   // exchange
-		p.config.RoutingKey, // routing key
-		false,               // mandatory
-		false,               // immediate
+		p.config.Exchange,
+		p.config.RoutingKey,
+		false,
+		false,
 		amqp.Publishing{
 			ContentType:  "application/json",
 			Body:         body,
-			DeliveryMode: amqp.Persistent, // Rendre le message persistant
+			DeliveryMode: amqp.Persistent,
 		},
 	)
 

@@ -22,30 +22,33 @@ func NewPlaylistPlayService(playlistService IPlaylistService, publisher messagin
 	}
 }
 
-func (s *PlaylistPlayService) PlayPlaylist(playlistID int) error {
-	// 1. Récupérer la playlist avec ses tracks
-	playlist, err := s.playlistService.GetPlaylist(playlistID)
-	if err != nil {
-		return fmt.Errorf("failed to get playlist %d: %w", playlistID, err)
-	}
+func (s *PlaylistPlayService) PlayPlaylist(playlist models.Playlist) error {
 
 	if len(playlist.Tracks) == 0 {
-		log.Printf("Playlist %d is empty, nothing to play", playlistID)
+		log.Printf("Playlist %d is empty, nothing to play", playlist.ID)
 		return nil
 	}
 
-	log.Printf("Starting to play playlist %d with %d tracks", playlistID, len(playlist.Tracks))
+	log.Printf("Starting to play playlist %d with %d tracks", playlist.ID, len(playlist.Tracks))
 
-	// 2. Pour chaque track, publier un événement TrackPlayed
-	playedAt := time.Now()
+	err := sendTracksEvents(playlist, s)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Successfully published %d track events for playlist %d", len(playlist.Tracks), playlist.ID)
+	return nil
+}
+
+func sendTracksEvents(playlist models.Playlist, s *PlaylistPlayService) error {
 	for position, track := range playlist.Tracks {
 		event := models.TrackPlayedEvent{
-			PlaylistID: playlistID,
-			TrackID:    int(track.ID),
+			PlaylistID: playlist.ID,
+			TrackID:    track.ID,
 			TrackTitle: track.Title,
 			Artist:     track.Artist,
 			Position:   position, // 0-based position
-			PlayedAt:   playedAt,
+			PlayedAt:   time.Now(),
 			EventID:    uuid.New().String(),
 		}
 
@@ -57,7 +60,5 @@ func (s *PlaylistPlayService) PlayPlaylist(playlistID int) error {
 
 		log.Printf("Published event for track '%s' by '%s' at position %d", track.Title, track.Artist, position)
 	}
-
-	log.Printf("Successfully published %d track events for playlist %d", len(playlist.Tracks), playlistID)
 	return nil
 }

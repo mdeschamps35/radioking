@@ -115,13 +115,11 @@ func (j *JWTMiddleware) filterSigningKeys(keys []JWK) []JWK {
 	return signingKeys
 }
 
-// parsePublicKey converts a JWK to RSA public key
 func (j *JWTMiddleware) parsePublicKey(key JWK) (*rsa.PublicKey, error) {
 	certPEM := fmt.Sprintf("-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----", key.X5c[0])
 	return jwt.ParseRSAPublicKeyFromPEM([]byte(certPEM))
 }
 
-// Middleware returns JWT authentication middleware
 func (j *JWTMiddleware) Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -143,7 +141,6 @@ func (j *JWTMiddleware) Middleware() func(http.Handler) http.Handler {
 	}
 }
 
-// extractBearerToken extracts and validates the Bearer token from Authorization header
 func (j *JWTMiddleware) extractBearerToken(r *http.Request) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
@@ -162,7 +159,6 @@ func (j *JWTMiddleware) extractBearerToken(r *http.Request) (string, error) {
 	return token, nil
 }
 
-// parseAndValidateToken parses and validates the JWT token
 func (j *JWTMiddleware) parseAndValidateToken(tokenString string) (*KeycloakClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &KeycloakClaims{}, j.getSigningKey)
 	if err != nil {
@@ -181,7 +177,6 @@ func (j *JWTMiddleware) parseAndValidateToken(tokenString string) (*KeycloakClai
 	return claims, nil
 }
 
-// getSigningKey returns the appropriate signing key for token validation
 func (j *JWTMiddleware) getSigningKey(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 		return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

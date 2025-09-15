@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,16 +20,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"gorm.io/gorm"
 )
 
 func main() {
 	cfg := loadConfiguration()
 
-	// Initialize database
-	dbInstance, err := db.InitDb()
-	if err != nil {
-		panic(err)
-	}
+	dbInstance, err := initDb()
 
 	// Initialize messaging
 	publisher, consumer, err := initMessaging(cfg)
@@ -86,12 +84,11 @@ func main() {
 	// Start server in goroutine
 	go func() {
 		log.Printf("Server starting on port %s", cfg.Server.Port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("Server error: %v", err)
 		}
 	}()
 
-	// Wait for interrupt signal
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	<-sigChan
@@ -107,6 +104,14 @@ func main() {
 		log.Printf("Server shutdown error: %v", err)
 	}
 	log.Println("Server shutdown complete")
+}
+
+func initDb() (*gorm.DB, error) {
+	dbInstance, err := db.InitDb()
+	if err != nil {
+		panic(err)
+	}
+	return dbInstance, err
 }
 
 func initAuthMiddleware(cfg *config.Config) *authentication.JWTMiddleware {
@@ -126,6 +131,10 @@ func loadConfiguration() *config.Config {
 }
 
 func initMessaging(cfg *config.Config) (messaging.MessagePublisher, messaging.MessageConsumer, error) {
+	if err := messaging.InitRabbitMQInfrastructure(cfg.Messaging.RabbitMQ); err != nil {
+		return nil, nil, fmt.Errorf("failed to initialize RabbitMQ infrastructure: %w", err)
+	}
+
 	publisher, err := messaging.NewRabbitMQPublisher(cfg.Messaging.RabbitMQ)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initialize publisher: %w", err)

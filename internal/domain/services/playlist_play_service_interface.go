@@ -1,6 +1,7 @@
 package services
 
-// IPlaylistPlayService interface pour jouer des playlists
+import "radioking-app/internal/domain/models"
+
 type IPlaylistPlayService interface {
-	PlayPlaylist(playlistID int) error
+	PlayPlaylist(playlist models.Playlist) error
 }

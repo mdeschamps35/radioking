@@ -3,9 +3,9 @@ package models
 import "time"
 
 type TrackPlay struct {
-	ID         int       `gorm:"primaryKey"`
-	PlaylistID int       `gorm:"not null;index"`
-	TrackID    int       `gorm:"not null;index"`
+	ID         int64     `gorm:"primaryKey"`
+	PlaylistID int64     `gorm:"not null;index"`
+	TrackID    int64     `gorm:"not null;index"`
 	Position   int       `gorm:"not null"`
 	PlayedAt   time.Time `gorm:"not null;index"`
 	CreatedAt  time.Time `gorm:"autoCreateTime"`
