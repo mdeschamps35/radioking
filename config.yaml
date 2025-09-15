@@ -1,0 +1,14 @@
+server:
+  port: "8080"
+
+auth:
+  enabled: true
+  keycloak_url: "http://localhost:8180"
+  realm: "radioking"
+
+messaging:
+  rabbitmq:
+    url: "amqp://radioking:radioking123@localhost:5672"
+    exchange: "playlist_events"
+    queue: "track_played"
+    routing_key: "track.played"
