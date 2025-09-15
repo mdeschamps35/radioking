@@ -35,7 +35,7 @@ Pas d'exception handler global (on a des RestExceptionHandler en spring je n'ai 
 
 
 **Tests**
-- COverage largeement insuffisante
+- Coverage largement insuffisant
 - Particuliérement niveau IT sur le messaging (j'ai l'habitude d'utiliser testcontainers pour ça)
 
 
